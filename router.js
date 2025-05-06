@@ -11,7 +11,7 @@ const CtlrPublic = require("./Controller/CtlrPublic");
 router.use("/publica", CtlrPublic);
 
 // Rotas protegidas
-router.use("/quest", authenticateToken, Quest);      // Exemplo: /quest/...
+router.use("/pergunta", authenticateToken, Quest);      // Exemplo: /quest/...
 router.use("/user", authenticateToken, User);       // Exemplo: /user/criar
 router.use("/feedback", authenticateToken, Resp);
 

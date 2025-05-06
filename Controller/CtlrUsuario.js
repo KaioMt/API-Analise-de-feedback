@@ -1,85 +1,84 @@
-require('dotenv').config();
-
 const express = require("express");
 const jwt = require("jsonwebtoken"); 
 const ctlrUsuario = express.Router();
-const axios = require('axios');
 
 const databese = require("../Database");
 
-function interpretarEstrelas(label) {
-  switch (label) {
-    case '1 star':
-      return 'Muito negativo';
-    case '2 stars':
-      return 'Negativo';
-    case '3 stars':
-      return 'Neutro';
-    case '4 stars':
-      return 'Positivo';
-    case '5 stars':
-      return 'Muito positivo';
-    default:
-      return 'Desconhecido';
-  }
-}
+//Criar um novo formulário
+ctlrUsuario.post('/novo-form', (req, res) => {
+  const { titulo, DataHora } = req.body;
+  const agora = new Date();
 
-ctlrUsuario.post('/sentimento', async (req, res) => {
-  const { texto } = req.body;
-
-  if (!texto) {
-    return res.status(400).json({ erro: 'Campo "texto" é obrigatório.' });
+  if (!titulo) {
+    return res.status(400).json({ mensagem: "Título é obrigatório" });
   }
 
-  try {
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment',
-      { inputs: texto },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-        },
-      }
-    );
+  const dados = {
+    Titulo: titulo,
+    DataHora: agora || DataHora, // Se não for passado, pega a data atual
+    // Usuario: req.loggedUser.id // O ID do usuário logado
+    IdUser: req.loggedUser.id
+  };
 
-    const resultado = response.data[0]; // Lista de sentimentos
-    const maisProvavel = resultado.reduce((a, b) => (a.score > b.score ? a : b));
-    console.log(maisProvavel.label);//pega o sentimento por estrela(5 muito bom, 4 bom, 3 neutro, 2 ruim, 1 muito ruim)
-
-    res.json({
-      texto,
-      sentimento: interpretarEstrelas(maisProvavel.label),
-      confianca: `${(maisProvavel.score * 100).toFixed(2)}%`,
-      detalhes: resultado.map(r => ({
-        sentimento: interpretarEstrelas(r.label),
-        confianca: `${(r.score * 100).toFixed(2)}%`
-      }))
+  databese.insert(dados).into("formulario")
+    .then(data => {
+      res.status(201).json({ mensagem: "Formulário criado com sucesso", id: data[0] });
+    })
+    .catch(err => {
+      res.status(500).json({ mensagem: err });
     });
-  } catch (error) {
-    console.error('Erro na API da Hugging Face:', error.response?.data || error.message);
-    res.status(500).json({
-      erro: 'Erro ao processar análise de sentimento.',
-      detalhes: error.response?.data || error.message,
-    });
-  }
 });
 
+ctlrUsuario.post('/logout', (req, res) => {
+  // O front precisa retirar o token armazenado na localstore.
+return res.status(200).json({ mensagem: `Logout realizado com sucesso` });
+});
+
+
 ctlrUsuario.get('/home', (req, res) =>{
-  databese.select("*").table("questionario")
+  databese.select("*").table("formulario")
   .then(data => {
-    res.status(201).json({Perguntas : data});
+    res.status(201).json({Formularios : data});
   })
   .catch(err => {
     res.status(500).json({mensagem :err});
   })
 })
 
+// rota para trazer um formulário específico
+ctlrUsuario.get('/formulario/:id', (req, res) => {
+  const id = req.params.id;
+  databese.select("*").table("formulario")
+  .where({ idForm: id })
+    .then(data => {
+      if (data.length > 0) {
+        res.status(200).json({ Formulario: data[0] });
+      } else {
+        res.status(404).json({ mensagem: "Formulário não encontrado" });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ mensagem: err });
+    });
+});
 
-
-
-ctlrUsuario.get('/teste', (req, res) => {
-  res.status(200).json({mensagem : "Deu certo Porra"})
-})
-
+ctlrUsuario.get('/formlario/:texto', (req, res) => {
+  const { texto } = req.params.texto; 
+  if (!texto) {
+    return res.status(400).json({ mensagem: "Texto é obrigatório" });
+  }
+  databese.select("*").table("formulario")
+    .whereRaw('Titulo LIKE ?', [`%${texto}%`])
+    .then(data => {
+      if (data.length > 0) {
+        res.status(200).json({ Formulario: data });
+      } else {
+        res.status(404).json({ mensagem: "Formulário não encontrado" });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ mensagem: err });
+    });
+} )
 
   module.exports = ctlrUsuario
