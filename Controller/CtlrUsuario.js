@@ -22,10 +22,10 @@ ctlrUsuario.post('/novo-form', (req, res) => {
 
   databese.insert(dados).into("formulario")
     .then(data => {
-      res.status(201).json({ mensagem: "Formulário criado com sucesso", id: data[0] });
+      return res.status(201).json({ mensagem: "Formulário criado com sucesso", id: data[0] });
     })
     .catch(err => {
-      res.status(500).json({ mensagem: err });
+      return res.status(500).json({ mensagem: err });
     });
 });
 
@@ -38,10 +38,10 @@ return res.status(200).json({ mensagem: `Logout realizado com sucesso` });
 ctlrUsuario.get('/home', (req, res) =>{
   databese.select("*").table("formulario")
   .then(data => {
-    res.status(201).json({Formularios : data});
+    return res.status(201).json({Formularios : data});
   })
   .catch(err => {
-    res.status(500).json({mensagem :err});
+    return res.status(500).json({mensagem :err});
   })
 })
 
@@ -49,16 +49,16 @@ ctlrUsuario.get('/home', (req, res) =>{
 ctlrUsuario.get('/formulario/:id', (req, res) => {
   const id = req.params.id;
   databese.select("*").table("formulario")
-  .where({ idForm: id })
+    .where({ idForm: id })
     .then(data => {
       if (data.length > 0) {
-        res.status(200).json({ Formulario: data[0] });
+        return res.status(200).json({ Formulario: data[0] });
       } else {
-        res.status(404).json({ mensagem: "Formulário não encontrado" });
+        return res.status(404).json({ mensagem: "Formulário não encontrado" });
       }
     })
     .catch(err => {
-      res.status(500).json({ mensagem: err });
+      return res.status(500).json({ mensagem: err });
     });
 });
 
@@ -71,13 +71,13 @@ ctlrUsuario.get('/formlario/:texto', (req, res) => {
     .whereRaw('Titulo LIKE ?', [`%${texto}%`])
     .then(data => {
       if (data.length > 0) {
-        res.status(200).json({ Formulario: data });
+        return res.status(200).json({ Formulario: data });
       } else {
-        res.status(404).json({ mensagem: "Formulário não encontrado" });
+        return res.status(404).json({ mensagem: "Formulário não encontrado" });
       }
     })
     .catch(err => {
-      res.status(500).json({ mensagem: err });
+      return res.status(500).json({ mensagem: err });
     });
 } )
 

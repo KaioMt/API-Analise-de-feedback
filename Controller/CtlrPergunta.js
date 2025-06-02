@@ -8,22 +8,23 @@ const databese = require("../Database")
 ctlrPergunta.post("/novo-pergunta/:idForm", (req, res) => {
     const { pergunta, status } = req.body;
 
-    !pergunta || pergunta.trim() === "" ? res.status(400).json({ mensagem: "Pergunta não pode ser nula" })
-        : null;
+    if (!pergunta || pergunta.trim() === "") {
+        return res.status(400).json({ mensagem: "Pergunta não pode ser nula" });
+    }
 
     let Dados = {
         Pergunta: pergunta,
-        Status: status || 0, //tem que passar o padrão no front
-        IdForm: req.params.idForm, //id do formulário que a pergunta pertence, passei pela url, pode ser pelo body também
-    }
+        Status: status || 0,
+        IdForm: req.params.idForm,
+    };
 
     databese.insert(Dados).into("pergunta")
         .then(data => {
             res.status(201).json({ mensagem: data });
         }).catch(err => {
             res.status(500).json({ mensagem: err });
-        })
-})
+        });
+});
 
 
 ctlrPergunta.put('/alterar-pergunta/:id', (req, res) => {

@@ -21,7 +21,7 @@ CtlrPublic.post('/novo-user', (req, res) => {
       let dados = {
         Nome: nome,
         Senha: senha,
-        Email: email
+        Email: email,
       }
 
       databese.insert(dados).into("usuario").then(data => {

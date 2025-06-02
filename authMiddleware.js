@@ -17,7 +17,6 @@ function authenticateToken(req, res, next) {
             if (err) {
                 return res.status(403).json({ mensagem: 'Token inválido' });
             } else {
-                console.log("user verificado: ", user);
                 req.Token = token;
                 req.loggedUser = {
                     id: user.id,
@@ -25,7 +24,6 @@ function authenticateToken(req, res, next) {
                     email: user.email,
                 };
 
-                console.log("Usuario logado: ", req.loggedUser);
             
                 next();
             }
